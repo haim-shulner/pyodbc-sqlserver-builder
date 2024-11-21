@@ -7,39 +7,30 @@ permissions:
   contents: write
 
 jobs:
-  linux:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
+  build:
+    name: Build pyodbc_package for Linux
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Set up Python 3.10
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
+      - name: Pull manylinux2014 Docker Image
+        run: docker pull quay.io/pypa/manylinux2014_x86_64
 
-      - name: Install Build Dependencies (Linux)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y unixodbc unixodbc-dev
-
-      - name: Build Wheel (Linux with manylinux)
+      - name: Build pyodbc_package Wheel
         run: |
           docker run --rm -v $(pwd):/io quay.io/pypa/manylinux2014_x86_64 /bin/bash -c "
             yum install -y unixODBC unixODBC-devel && \
             curl https://packages.microsoft.com/keys/microsoft.asc | tee /etc/pki/rpm-gpg/MICROSOFT.asc && \
             curl https://packages.microsoft.com/config/rhel/7/prod.repo | tee /etc/yum.repos.d/mssql-release.repo && \
             ACCEPT_EULA=Y yum install -y msodbcsql17 && \
-            python3 -m pip install build && \
-            python3 -m build --wheel --outdir /io/wheels
+            /opt/python/cp310-cp310/bin/python -m pip install --upgrade pip build && \
+            /opt/python/cp310-cp310/bin/python -m build --wheel --outdir /io/wheels
           "
 
-      - name: Upload Wheels
+      - name: Upload Built Wheels
         uses: actions/upload-artifact@v3
         with:
-          name: pyodbc_package-wheels-${{ matrix.os }}-py3.10
-          path: dist/*.whl
+          name: linux-wheels
+          path: wheels/*.whl
