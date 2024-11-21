@@ -8,8 +8,11 @@ permissions:
 
 jobs:
   build:
-    name: Build pyodbc_package for Linux
+    name: Build pyodbc_package Wheels
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8, 3.9, 3.10, 3.11]
 
     steps:
       - name: Checkout Code
@@ -25,12 +28,13 @@ jobs:
             curl https://packages.microsoft.com/keys/microsoft.asc | tee /etc/pki/rpm-gpg/MICROSOFT.asc && \
             curl https://packages.microsoft.com/config/rhel/7/prod.repo | tee /etc/yum.repos.d/mssql-release.repo && \
             ACCEPT_EULA=Y yum install -y msodbcsql17 && \
-            /opt/python/cp310-cp310/bin/python -m pip install --upgrade pip build && \
-            /opt/python/cp310-cp310/bin/python -m build --wheel --outdir /io/wheels
+            cp /usr/lib64/libodbc.so /io/pyodbc_package/bin/ && \
+            /opt/python/cp${{ matrix.python-version | replace('.', '') }}-cp${{ matrix.python-version | replace('.', '') }}/bin/python -m pip install --upgrade pip build && \
+            cd /io && /opt/python/cp${{ matrix.python-version | replace('.', '') }}-cp${{ matrix.python-version | replace('.', '') }}/bin/python -m build --wheel --outdir /io/wheels
           "
 
       - name: Upload Built Wheels
         uses: actions/upload-artifact@v3
         with:
-          name: linux-wheels
+          name: linux-wheels-python-${{ matrix.python-version }}
           path: wheels/*.whl
