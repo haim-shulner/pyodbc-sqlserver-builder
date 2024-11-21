@@ -1,0 +1,16 @@
+# Include all .so files for Linux
+include *.so
+
+# Include all .dll files for Windows
+include *.dll
+
+# Include all .txt and .json files
+include *.txt
+include *.json
+
+# Include any files in a specific directory
+recursive-include drivers/ *
+
+# Exclude unnecessary files
+exclude *.pyc
+exclude *.log

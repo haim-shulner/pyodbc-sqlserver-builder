@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=42", "wheel", "setuptools_scm"]  # Build dependencies
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyodbc_package"
+version = "0.1.0"
+description = "pyodbc package with embedded ODBC drivers"
+authors = [
+    { name = "Your Name", email = "your.email@example.com" }
+]
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.8"
+keywords = ["pyodbc", "odbc", "database", "sql"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent"
+]
+dependencies = ["pyodbc"]
+
+[project.urls]
+Homepage = "https://github.com/your-repo/pyodbc_package"
+Documentation = "https://your-docs-url"
+
+[tool.setuptools.packages]
+include = ["pyodbc_package"]
+
+[tool.setuptools.package-data]
+"pyodbc_package" = [
+    "bin/linux/*",
+    "bin/windows/*",
+    "bin/macos/*"
+]
