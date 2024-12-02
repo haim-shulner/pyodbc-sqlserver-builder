@@ -1,0 +1,74 @@
+name: Build Linux Wheel
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: [3.9, 3.10, 3.11, 3.12]
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y curl g++ make
+        sudo apt-get install -y gnupg
+
+    - name: Install unixODBC 2.3.12
+      run: |
+        curl -L http://www.unixodbc.org/unixODBC-2.3.12.tar.gz -o unixODBC-2.3.12.tar.gz
+        tar -xvf unixODBC-2.3.12.tar.gz
+        cd unixODBC-2.3.12
+        ./configure --prefix=/usr/local
+        make
+        sudo make install
+
+    - name: Install Microsoft ODBC Driver 18
+      run: |
+        # Add Microsoft repository key
+        curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+        # Add the Microsoft repository
+        curl https://packages.microsoft.com/config/ubuntu/$(lsb_release -sr)/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
+        sudo apt-get update
+        # Install the driver
+        ACCEPT_EULA=Y sudo apt-get install -y msodbcsql18
+
+    - name: Install Python Build Dependencies
+      run: |
+        python -m pip install --upgrade pip setuptools wheel auditwheel
+
+    - name: Build unixODBC and pyodbc Wheel
+      run: |
+        # Set environment variables so pyodbc can find unixODBC headers and libraries
+        export CFLAGS="-I/usr/local/include"
+        export LDFLAGS="-L/usr/local/lib"
+        # Install pyodbc with unixODBC, and build wheel
+        python setup.py bdist_wheel
+
+    - name: Repair Wheel with auditwheel
+      run: |
+        # Repair the wheel to make it manylinux compatible
+        auditwheel repair dist/*.whl -w dist/
+
+    - name: Upload Wheel Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: linux-wheels
+        path: dist/*.whl
