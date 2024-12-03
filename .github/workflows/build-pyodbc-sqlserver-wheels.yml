@@ -60,14 +60,13 @@ jobs:
         # Install pyodbc with unixODBC, and build wheel
         python setup.py bdist_wheel
 
-    - name: Repair Wheel with auditwheel
-      run: |
-        # Repair the wheel to make it manylinux compatible
-        auditwheel repair dist/*.whl -w dist/
+    #- name: Repair Wheel with auditwheel
+    #  run: |
+    #    # Repair the wheel to make it manylinux compatible
+    #    auditwheel repair dist/*.whl -w dist/
 
     - name: Upload Wheel Artifact
       uses: actions/upload-artifact@v4
       with:
         name: linux-wheels
         path: dist/*.whl
-        
