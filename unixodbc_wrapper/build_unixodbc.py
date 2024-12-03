@@ -2,9 +2,11 @@ import os
 import platform
 import subprocess
 import sys
+import shutil
 
 UNIXODBC_URL = "http://www.unixodbc.org/unixODBC-2.3.12.tar.gz"
 INSTALL_DIR = os.path.join(os.path.dirname(__file__), 'unixodbc_install')
+LIB_DIR = os.path.join(os.path.dirname(__file__), 'unixodbc_wrapper', 'compiled_unixodbc', 'unixODBC')
 
 def download_and_build_unixodbc():
     os.makedirs(INSTALL_DIR, exist_ok=True)
@@ -25,7 +27,11 @@ def download_and_build_unixodbc():
     subprocess.run(["make"], check=True)
     subprocess.run(["make", "install"], check=True)
 
-    print("unixODBC installed successfully.")
+    # Move compiled shared libraries to the compiled_unixodbc/unixODBC folder
+    os.makedirs(LIB_DIR, exist_ok=True)
+    shutil.copytree(os.path.join(INSTALL_DIR, 'lib'), LIB_DIR, dirs_exist_ok=True)
+
+    print("unixODBC installed successfully and libraries moved.")
 
 def install_pyodbc():
     # Use pip to install pyodbc, providing environment variables so it can find unixODBC
